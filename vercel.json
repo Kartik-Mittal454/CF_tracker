@@ -1,0 +1,12 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "env": {
+    "AZURE_SQL_SERVER": "@azure_sql_server",
+    "AZURE_SQL_DATABASE": "@azure_sql_database",
+    "AZURE_SQL_USER": "@azure_sql_user",
+    "AZURE_SQL_PASSWORD": "@azure_sql_password"
+  }
+}

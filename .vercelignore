@@ -1,0 +1,24 @@
+# Files and directories to ignore during Vercel deployment
+
+# Python
+.venv/
+*.pyc
+__pycache__/
+
+# Development
+.vscode/
+.idea/
+
+# Documentation (keep only README.md)
+docs/
+
+# Excel files
+*.xlsx
+*.xlsm
+
+# Database
+*.sql
+
+# Other
+.git/
+node_modules/
