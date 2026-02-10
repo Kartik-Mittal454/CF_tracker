@@ -12,6 +12,7 @@ import CaseMatrix from '@/components/CaseMatrix'
 import BillingManager from '@/components/BillingManager'
 import TeamManager from '@/components/TeamManager'
 import { Case, fetchAllCases, addCase, modifyCase, removeCase, importCasesBulk } from '@/app/actions'
+import { SAMPLE_CASES } from '@/lib/sampleData'
 
 // Re-export Case type for components
 export type { Case } from '@/app/actions'
@@ -63,6 +64,7 @@ export default function Home() {
   const [isOnline, setIsOnline] = useState(true)
   const [displayLimit, setDisplayLimit] = useState(100)
   const [showFloatingSearch, setShowFloatingSearch] = useState(false)
+  const [isUsingSampleData, setIsUsingSampleData] = useState(false)
   // Data load states
   const searchRef = useRef<HTMLInputElement>(null)
   const floatingSearchRef = useRef<HTMLInputElement>(null)
@@ -114,6 +116,7 @@ export default function Home() {
             if (fresh && Array.isArray(parsed.data)) {
               setCases(parsed.data)
               setError(null)
+              setIsUsingSampleData(false)
               usedCache = true
               cacheFresh = true
               setLastRefreshed(new Date(parsed.timestamp))
@@ -133,10 +136,15 @@ export default function Home() {
           const all = await fetchAllCases(true)
           setCases(all)
           setError(null)
+          setIsUsingSampleData(false)
           setLastRefreshed(new Date())
         } catch (error) {
           console.error('❌ Error loading cases from Azure SQL:', error)
-          setError('Failed to load data from Azure SQL. Please try again.')
+          // Fallback to sample data
+          setCases(SAMPLE_CASES)
+          setIsUsingSampleData(true)
+          setError('Unable to connect to database. Showing sample data for demonstration purposes.')
+          setLastRefreshed(new Date())
         } finally {
           if (!usedCache) setIsLoading(false)
         }
@@ -1448,10 +1456,35 @@ export default function Home() {
       )}
 
       <div className="max-w-[1600px] mx-auto px-6 py-8 space-y-6">
+        {/* Sample Data Disclaimer */}
+        {isUsingSampleData && (
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-400 rounded-xl p-5 text-amber-900 text-sm shadow-md">
+            <div className="flex items-start gap-3">
+              <div className="text-xl">⚠️</div>
+              <div className="flex-1">
+                <p className="font-bold mb-1">Demo Mode: Sample Data In Use</p>
+                <p className="text-amber-800">The database connection is currently unavailable. This application is displaying 200 sample cases for demo and testing purposes. All sample data is generated synthetically and will be replaced with real data once the connection is restored. You can test all functionality including filters, sorting, export, and editing with this sample dataset.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Error Banner */}
-        {error && (
+        {error && !isUsingSampleData && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-800 text-sm">
             ⚠️ {error}
+            <button
+              onClick={() => setError(null)}
+              className="ml-4 underline hover:no-underline"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+        
+        {error && isUsingSampleData && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-amber-800 text-sm">
+            ℹ️ {error}
             <button
               onClick={() => setError(null)}
               className="ml-4 underline hover:no-underline"
@@ -1525,6 +1558,12 @@ export default function Home() {
               />
             </div>
             <div className="text-sm text-slate-600 font-medium bg-slate-100 px-4 py-2 rounded-xl flex items-center gap-3">
+              {isUsingSampleData && (
+                <span className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-full bg-amber-100 text-amber-700 font-semibold">
+                  <span className="h-2 w-2 rounded-full bg-amber-500"></span>
+                  SAMPLE DATA
+                </span>
+              )}
               <span className={`flex items-center gap-1 text-[11px] px-2 py-1 rounded-full ${isOnline ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
                 <span className={`h-2 w-2 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-slate-500'}`}></span>
                 {isOnline ? 'Online' : 'Offline'}
